@@ -1,52 +1,53 @@
-import os
 import requests
+import os
 
-# Required env variables (do not remove)
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:7860")
-MODEL_NAME = os.getenv("MODEL_NAME", "baseline")
+BASE_URL = os.getenv("API_BASE_URL", "http://localhost:7860")
 
-def run():
-    # Reset environment
-    state = requests.post(f"{API_BASE_URL}/reset").json()
+def solve():
+    # RESET ENV
+    state = requests.post(f"{BASE_URL}/reset").json()
 
     tickets = state["tickets"]
 
+    # HANDLE ALL TICKETS
     for t in tickets:
         text = t["text"].lower()
+        sentiment = t["sentiment"]
 
         # ---------- CLASSIFY ----------
-        if "payment" in text or "refund" in text:
+        if "payment" in text:
             category = "billing"
         elif "crash" in text:
             category = "technical"
+        elif "refund" in text:
+            category = "refund"
         else:
             category = "general"
 
-        requests.post(f"{API_BASE_URL}/step", json={
+        requests.post(f"{BASE_URL}/step", json={
             "type": "classify",
             "ticket_id": t["id"],
             "value": category
         })
 
         # ---------- RESPOND ----------
-        requests.post(f"{API_BASE_URL}/step", json={
+        requests.post(f"{BASE_URL}/step", json={
             "type": "respond",
-            "ticket_id": t["id"],
-            "value": "We are working on your issue."
+            "ticket_id": t["id"]
         })
 
         # ---------- ESCALATE ----------
-        if t["sentiment"] == "angry":
-            requests.post(f"{API_BASE_URL}/step", json={
+        if sentiment == "angry":
+            requests.post(f"{BASE_URL}/step", json={
                 "type": "escalate",
-                "ticket_id": t["id"],
-                "value": "urgent"
+                "ticket_id": t["id"]
             })
 
-    # Get final score
-    score = requests.get(f"{API_BASE_URL}/grader?task_id=hard").json()
-    print("FINAL SCORE:", score)
+    # GET FINAL SCORE
+    result = requests.get(f"{BASE_URL}/grader", params={"task_id": "hard"}).json()
+
+    return result
 
 
 if __name__ == "__main__":
-    run()
+    print(solve())
