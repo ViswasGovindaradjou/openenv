@@ -5,14 +5,7 @@ from grader import grade
 from tasks import TASKS
 from baseline import run_baseline
 
-app = FastAPI(
-    title="OpenEnv SLA Support v3",
-    docs_url="/docs",        # 👈 enable Swagger UI
-    redoc_url="/redoc",      # 👈 optional
-    openapi_url="/openapi.json",
-    root_path=""             # 👈 important for HF Spaces
-)
-
+app = FastAPI(title="OpenEnv SLA Support v3")
 env = SupportEnv(seed=42, max_steps=15)
 
 @app.get("/reset")
@@ -48,3 +41,7 @@ def home():
         "message": "OpenEnv SLA Support Environment Running",
         "docs": "/docs"
     }
+
+# ✅ ADD THIS
+def main():
+    return app
