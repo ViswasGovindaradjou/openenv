@@ -9,5 +9,9 @@ dependencies = [
     "uvicorn==0.30.0",
     "pydantic==1.10.15",
     "python-dotenv==1.0.1",
-    "requests"
+    "requests",
+    "openenv-core>=0.2.0"
 ]
+
+[project.scripts]
+server = "app:main"
