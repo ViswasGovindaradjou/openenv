@@ -7,24 +7,28 @@ def run_baseline():
     obs = env.reset()
     done = False
 
-    # simple rule-based agent (deterministic)
     while not done:
         for t in obs.tickets:
             text = t.text.lower()
 
+            # ---------- BETTER CLASSIFICATION ----------
             if "payment" in text:
                 cat = "billing"
-            elif "crash" in text:
+            elif "crash" in text or "error" in text:
                 cat = "technical"
-            else:
+            elif "refund" in text:
                 cat = "refund"
+            else:
+                cat = "general"
 
             obs, _, done, _ = env.step(Action(type="classify", ticket_id=t.id, value=cat))
             if done: break
 
+            # ---------- ALWAYS RESPOND ----------
             obs, _, done, _ = env.step(Action(type="respond", ticket_id=t.id))
             if done: break
 
+            # ---------- ESCALATE ONLY WHEN ANGRY ----------
             if t.sentiment == "angry":
                 obs, _, done, _ = env.step(Action(type="escalate", ticket_id=t.id))
             if done: break
@@ -34,6 +38,3 @@ def run_baseline():
         "medium": grade(env.tickets, env.gt, "medium"),
         "hard": grade(env.tickets, env.gt, "hard"),
     }
-
-if __name__ == "__main__":
-    print(run_baseline())
